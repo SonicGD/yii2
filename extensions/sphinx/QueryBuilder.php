@@ -67,13 +67,15 @@ class QueryBuilder extends Object
                 $query->andWhere('MATCH(' . $query->match->expression . ')');
                 $params = array_merge($params, $query->match->params);
             } else {
-                $query->andWhere("MATCH('" . $this->db->escapeMatchValue($query->match) . "')");
+                $phName = self::PARAM_PREFIX . count($params);
+                $params[$phName] = $this->db->escapeMatchValue($query->match);
+                $query->andWhere('MATCH(' . $phName . ')');
             }
         }
 
         $from = $query->from;
         if ($from === null && $query instanceof ActiveQuery) {
-            /** @var ActiveRecord $modelClass */
+            /* @var $modelClass ActiveRecord */
             $modelClass = $query->modelClass;
             $from = [$modelClass::indexName()];
         }
@@ -971,14 +973,14 @@ class QueryBuilder extends Object
                 } else {
                     $phName = self::PARAM_PREFIX . count($params);
                     $lineParts[] = $phName;
-                    $params[$phName] = (isset($columnSchema)) ? $columnSchema->typecast($subValue) : $subValue;
+                    $params[$phName] = (isset($columnSchema)) ? $columnSchema->dbTypecast($subValue) : $subValue;
                 }
             }
 
             return '(' . implode(',', $lineParts) . ')';
         } else {
             $phName = self::PARAM_PREFIX . count($params);
-            $params[$phName] = (isset($columnSchema)) ? $columnSchema->typecast($value) : $value;
+            $params[$phName] = (isset($columnSchema)) ? $columnSchema->dbTypecast($value) : $value;
 
             return $phName;
         }

@@ -174,7 +174,7 @@ class MessageControllerTest extends TestCase
     {
         $language = 'en';
 
-        $category = 'test_category';
+        $category = 'test_category1';
         $message = 'test message';
         $sourceFileContent = "Yii::t('{$category}', '{$message}')";
         $this->createSourceFile($sourceFileContent);
@@ -201,7 +201,7 @@ class MessageControllerTest extends TestCase
     {
         $language = 'en';
 
-        $category = 'test_category';
+        $category = 'test_category2';
         $message = 'test message';
         $sourceFileContent = "Yii::t('{$category}', '{$message}')";
         $this->createSourceFile($sourceFileContent);
@@ -230,8 +230,12 @@ class MessageControllerTest extends TestCase
      */
     public function testMerge()
     {
+        if (defined('HHVM_VERSION')) {
+            $this->markTestSkipped('Can not test on HHVM because modified files can not be reloaded.');
+        }
+
         $language = 'en';
-        $category = 'test_category';
+        $category = 'test_category3';
         $messageFileName = $language . DIRECTORY_SEPARATOR . $category . '.php';
 
         $existingMessage = 'test existing message';
@@ -251,13 +255,13 @@ class MessageControllerTest extends TestCase
             'messagePath' => $this->messagePath,
             'overwrite' => true,
         ]);
-        $this->runMessageControllerAction('extract', [$this->configFileName]);
+        $commandOutput = $this->runMessageControllerAction('extract', [$this->configFileName]);
 
         $messages = require($this->messagePath . DIRECTORY_SEPARATOR . $messageFileName);
-        $this->assertTrue(array_key_exists($newMessage, $messages), 'Unable to add new message!');
-        $this->assertTrue(array_key_exists($existingMessage, $messages), 'Unable to keep existing message!');
-        $this->assertEquals('', $messages[$newMessage], 'Wrong new message content!');
-        $this->assertEquals($existingMessageContent, $messages[$existingMessage], 'Unable to keep existing message content!');
+        $this->assertTrue(array_key_exists($newMessage, $messages), 'Unable to add new message: "' . $newMessage . '". Command output was:' . "\n" . $commandOutput);
+        $this->assertTrue(array_key_exists($existingMessage, $messages), 'Unable to keep existing message: "' . $existingMessage . '". Command output was:' . "\n" . $commandOutput);
+        $this->assertEquals('', $messages[$newMessage], 'Wrong new message content!. Command output was:\n' . $commandOutput);
+        $this->assertEquals($existingMessageContent, $messages[$existingMessage], 'Unable to keep existing message content!. Command output was:' . "\n" . $commandOutput);
     }
 
     /**
@@ -265,8 +269,12 @@ class MessageControllerTest extends TestCase
      */
     public function testNoLongerNeedTranslation()
     {
+        if (defined('HHVM_VERSION')) {
+            $this->markTestSkipped('Can not test on HHVM because modified files can not be reloaded.');
+        }
+
         $language = 'en';
-        $category = 'test_category';
+        $category = 'test_category4';
         $messageFileName = $language . DIRECTORY_SEPARATOR . $category . '.php';
 
         $oldMessage = 'test old message';
@@ -298,8 +306,12 @@ class MessageControllerTest extends TestCase
      */
     public function testMergeWithContentZero()
     {
+        if (defined('HHVM_VERSION')) {
+            $this->markTestSkipped('Can not test on HHVM because modified files can not be reloaded.');
+        }
+
         $language = 'en';
-        $category = 'test_category';
+        $category = 'test_category5';
         $messageFileName = $language . DIRECTORY_SEPARATOR . $category . '.php';
 
         $zeroMessage = 'test zero message';
@@ -335,8 +347,12 @@ class MessageControllerTest extends TestCase
      */
     public function testMultiplyTranslators()
     {
+        if (defined('HHVM_VERSION')) {
+            $this->markTestSkipped('Can not test on HHVM because modified files can not be reloaded.');
+        }
+
         $language = 'en';
-        $category = 'test_category';
+        $category = 'test_category6';
 
         $translators = [
             'Yii::t',

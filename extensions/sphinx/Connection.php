@@ -109,7 +109,6 @@ class Connection extends \yii\db\Connection
      */
     public function createCommand($sql = null, $params = [])
     {
-        $this->open();
         $command = new Command([
             'db' => $this,
             'sql' => $sql,
@@ -132,17 +131,17 @@ class Connection extends \yii\db\Connection
     /**
      * Escapes all special characters from 'MATCH' statement argument.
      * Make sure you are using this method whenever composing 'MATCH' search statement.
-     * Note: this method does not perform quoting, you should place the result in the quotes manually.
+     * Note: this method does not perform quoting, you should place the result in the quotes
+     * an perform additional escaping for it manually, the best way to do it is using PDO parameter.
      * @param string $str string to be escaped.
      * @return string the properly escaped string.
      */
     public function escapeMatchValue($str)
     {
-        $str = str_replace(
-            ['\\', '/', '"', "'", '(', ')', '|', '-', '!', '@', '~', '&', '^', '$', '=', "\x00", "\n", "\r", "\x1a"],
-            ['\\\\', '\\/', '\\"', "\\'", '\\(', '\\)', '\\|', '\\-', '\\!', '\\@', '\\~', '\\&', '\\^', '\\$', '\\=', "\\x00", "\\n", "\\r", "\\x1a"],
+        return str_replace(
+            ['\\', '/', '"', '(', ')', '|', '-', '!', '@', '~', '&', '^', '$', '=', '>', '<', "\x00", "\n", "\r", "\x1a"],
+            ['\\\\', '\\/', '\\"', '\\(', '\\)', '\\|', '\\-', '\\!', '\\@', '\\~', '\\&', '\\^', '\\$', '\\=', '\\>', '\\<',  "\\x00", "\\n", "\\r", "\\x1a"],
             $str
         );
-        return str_replace('\\', '\\\\', $str);
     }
 }

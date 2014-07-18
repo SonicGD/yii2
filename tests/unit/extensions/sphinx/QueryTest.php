@@ -42,7 +42,7 @@ class QueryTest extends SphinxTestCase
 
         $command = $query->createCommand($this->getConnection(false));
         $this->assertContains('MATCH(', $command->getSql(), 'No MATCH operator present!');
-        $this->assertContains($match, $command->getSql(), 'No match query in SQL!');
+        $this->assertContains($match, $command->params, 'No match query among params!');
     }
 
     public function testWhere()
@@ -258,32 +258,57 @@ class QueryTest extends SphinxTestCase
     /**
      * @depends testRun
      */
-    public function testWhereQuotedValue()
+    public function testWhereSpecialCharValue()
     {
         $connection = $this->getConnection();
 
         $query = new Query;
         $rows = $query->from('yii2_test_article_index')
             ->andWhere(['author_id' => 'some"'])
-            //->match('about"')
             ->all($connection);
         $this->assertEmpty($rows);
     }
 
     /**
+     * Data provider for [[testMatchSpecialCharValue()]]
+     * @return array test data
+     */
+    public function dataProviderMatchSpecialCharValue()
+    {
+        return [
+            ["'"],
+            ['"'],
+            ['@'],
+            ['\\'],
+            ['()'],
+            ['<<<'],
+            ['>>>'],
+            ["\x00"],
+            ["\n"],
+            ["\r"],
+            ["\x1a"],
+            ['\\' . "'"],
+            ['\\' . '"'],
+        ];
+    }
+
+    /**
+     * @dataProvider dataProviderMatchSpecialCharValue
      * @depends testRun
+     *
+     * @param string $char char to be tested
      *
      * @see https://github.com/yiisoft/yii2/issues/3668
      */
-    public function testMatchSpecialCharValue()
+    public function testMatchSpecialCharValue($char)
     {
         $connection = $this->getConnection();
 
         $query = new Query;
         $rows = $query->from('yii2_test_article_index')
-            ->match('about\"')
+            ->match('about' . $char)
             ->all($connection);
-        $this->assertNotEmpty($rows);
+        $this->assertTrue(is_array($rows)); // no query error
     }
 
     /**
@@ -295,7 +320,7 @@ class QueryTest extends SphinxTestCase
 
         $query = new Query;
         $rows = $query->from('yii2_test_article_index')
-            ->match(new Expression("'@(content) " . $connection->escapeMatchValue('about"') . "'"))
+            ->match(new Expression(':match', ['match' => '@(content) ' . $connection->escapeMatchValue('about\\"')]))
             ->all($connection);
         $this->assertNotEmpty($rows);
     }
